@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bid Timeline Planner — Planning Suite</title>
+  <meta name="description" content="Professional bid management tool for auto-calculating RFP schedules and Gantt timelines." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons (CDN) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:            #f4f1ea;
+      --bg-card:       #fffdf8;
+      --bg-header:     #1e2a4a;
+      --border:        #d6d0c4;
+      --border-light:  #e8e4db;
+      --ink:           #1a1a1a;
+      --ink-light:     #4a4a4a;
+      --ink-muted:     #8a8578;
+      --navy:          #1e2a4a;
+      --navy-light:    #2c3e6b;
+      --gold:          #c8a961;
+      --gold-dark:     #a88b3d;
+      --accent-green:  #2d6b4a;
+      --accent-red:    #8b3a3a;
+      --font-serif:    'Playfair Display', Georgia, serif;
+      --font-sans:     'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono:     'JetBrains Mono', 'Fira Code', monospace;
+      --radius:        8px;
+      --radius-sm:     5px;
+      --shadow:        0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md:     0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-lg:     0 8px 30px rgba(0,0,0,0.10);
+      --transition:    all 0.2s ease;
+      /* category colours */
+      --cat-strategy:   #1e2a4a;
+      --cat-solution:   #2d6b4a;
+      --cat-content:    #6b4a2d;
+      --cat-reviews:    #8b6914;
+      --cat-governance: #5a3d6b;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ───────────────────────────────────────────────────── */
+    .app-header {
+      background: linear-gradient(135deg, #1e2a4a 0%, #2c3e6b 100%);
+      color: #fff;
+      padding: 28px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .app-header::after {
+      content: '';
+      position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .header-content {
+      position: relative; z-index: 1;
+      max-width: 1400px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-title { font-family: var(--font-serif); font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }
+    .header-subtitle { font-size: 12px; text-transform: uppercase; letter-spacing: 3px; opacity: 0.6; margin-top: 4px; }
+    .header-badge {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+      padding: 6px 14px; border-radius: 20px; font-size: 11px; letter-spacing: 1.5px;
+      text-transform: uppercase; backdrop-filter: blur(4px);
+    }
+
+    /* ── Container ────────────────────────────────────────────────── */
+    .container { max-width: 1400px; margin: 0 auto; padding: 0 40px 60px; }
+
+    /* ── Controls Panel ───────────────────────────────────────────── */
+    .controls-panel {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 32px; margin-top: 28px; box-shadow: var(--shadow);
+    }
+    .controls-panel h2 {
+      font-family: var(--font-serif); font-size: 18px; font-weight: 600;
+      margin-bottom: 20px; color: var(--navy); display: flex; align-items: center; gap: 10px;
+    }
+    .controls-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr; gap: 16px; align-items: end; }
+    .form-group label {
+      display: block; font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--ink-muted); margin-bottom: 6px;
+    }
+    .form-group input, .form-group select {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      font-family: var(--font-mono); font-size: 13px; color: var(--ink); background: #fff;
+      transition: var(--transition); outline: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(30,42,74,0.08); }
+    .form-group input::placeholder { color: var(--ink-muted); opacity: 0.6; }
+
+    /* ── Action Buttons ───────────────────────────────────────────── */
+    .actions-bar { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+    .actions-bar-right { margin-left: auto; display: flex; gap: 8px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none;
+      border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 13px;
+      font-weight: 600; cursor: pointer; transition: var(--transition); letter-spacing: 0.3px;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-sm { padding: 7px 14px; font-size: 11px; }
+    .btn-primary { background: var(--navy); color: #fff; }
+    .btn-primary:hover { background: var(--navy-light); box-shadow: var(--shadow-md); }
+    .btn-secondary { background: transparent; color: var(--ink-light); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border-light); }
+    .btn-gold { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); color: #fff; }
+    .btn-gold:hover { box-shadow: var(--shadow-md); filter: brightness(1.05); }
+    .btn-green { background: var(--accent-green); color: #fff; }
+    .btn-green:hover { filter: brightness(1.1); box-shadow: var(--shadow-md); }
+
+    /* ── Saved Plans Panel ──────────────────────────────────────────── */
+    .plans-panel {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px; margin-top: 16px;
+      box-shadow: var(--shadow); display: none;
+    }
+    .plans-panel.open { display: block; animation: fadeInUp 0.3s ease; }
+    .plans-panel h3 {
+      font-family: var(--font-serif); font-size: 15px; font-weight: 600;
+      color: var(--navy); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .plans-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+    .plan-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border: 1px solid var(--border-light); border-radius: 6px;
+      background: #fff; transition: var(--transition); cursor: pointer;
+    }
+    .plan-item:hover { border-color: var(--navy); background: rgba(30,42,74,0.02); }
+    .plan-item-info { flex: 1; }
+    .plan-item-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .plan-item-meta { font-size: 10px; color: var(--ink-muted); font-family: var(--font-mono); margin-top: 2px; }
+    .plan-item-actions { display: flex; gap: 6px; }
+    .plan-item-actions button {
+      padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px;
+      background: #fff; font-size: 10px; font-weight: 600; cursor: pointer;
+      transition: var(--transition); color: var(--ink-muted);
+    }
+    .plan-item-actions button:hover { border-color: var(--navy); color: var(--navy); }
+    .plan-item-actions button.delete-btn:hover { border-color: var(--accent-red); color: var(--accent-red); }
+    .plans-empty { text-align: center; padding: 20px; color: var(--ink-muted); font-size: 13px; }
+    .template-desc { font-size: 10px; color: var(--ink-muted); margin-top: 4px; font-style: italic; }
+    /* hidden file input */
+    .hidden-input { display: none; }
+
+    /* ── Metrics Bar ──────────────────────────────────────────────── */
+    .metrics-bar {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+      background: var(--border); border-radius: var(--radius); overflow: hidden;
+      margin-top: 24px; box-shadow: var(--shadow);
+    }
+    .metric-card { background: var(--bg-card); padding: 18px 22px; text-align: center; transition: var(--transition); }
+    .metric-card:hover { background: #fff; }
+    .metric-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--ink-muted); margin-bottom: 6px; }
+    .metric-value { font-family: var(--font-mono); font-size: 15px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .metric-value.highlight { color: var(--navy); font-weight: 700; font-size: 20px; }
+    .metric-value.urgent { color: var(--accent-red); font-weight: 700; font-size: 20px; }
+
+    /* ── Phase Table ──────────────────────────────────────────────── */
+    .table-section { margin-top: 28px; }
+    .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .table-header h2 { font-family: var(--font-serif); font-size: 18px; font-weight: 600; color: var(--navy); display: flex; align-items: center; gap: 10px; }
+    .phase-count { font-size: 12px; color: var(--ink-muted); font-family: var(--font-mono); }
+    .phase-table {
+      width: 100%; border-collapse: separate; border-spacing: 0;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
+    }
+    .phase-table thead th {
+      background: var(--navy); color: #fff; padding: 12px 16px; font-size: 10px;
+      font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; text-align: left;
+      white-space: nowrap; position: sticky; top: 0; z-index: 10;
+    }
+    .phase-table tbody tr { transition: var(--transition); border-bottom: 1px solid var(--border-light); }
+    .phase-table tbody tr:hover { background: rgba(30,42,74,0.02); }
+    .phase-table tbody tr.excluded {
+      opacity: 0.35;
+      background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(0,0,0,0.015) 4px, rgba(0,0,0,0.015) 8px);
+    }
+    .phase-table tbody tr.excluded td { text-decoration: line-through; }
+    .phase-table tbody tr.excluded td:last-child { text-decoration: none; }
+    .phase-table tbody td { padding: 11px 16px; font-size: 13px; vertical-align: middle; border-bottom: 1px solid var(--border-light); }
+    .phase-table tbody tr:last-child td { border-bottom: none; }
+
+    /* Category Badges */
+    .category-badge { display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #fff; white-space: nowrap; }
+    .cat-strategy    { background: var(--cat-strategy); }
+    .cat-solution    { background: var(--cat-solution); }
+    .cat-content     { background: var(--cat-content); }
+    .cat-reviews     { background: var(--cat-reviews); }
+    .cat-governance  { background: var(--cat-governance); }
+
+    /* Inline editable inputs */
+    .inline-input { border: 1px solid transparent; background: transparent; padding: 4px 8px; font-family: var(--font-mono); font-size: 12px; color: var(--ink); border-radius: 3px; transition: var(--transition); width: 110px; }
+    .inline-input:hover { border-color: var(--border); }
+    .inline-input:focus { border-color: var(--navy); background: #fff; outline: none; box-shadow: 0 0 0 2px rgba(30,42,74,0.08); }
+    .owner-input { width: 130px; }
+    .duration-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-family: var(--font-mono); font-size: 11px; font-weight: 500; white-space: nowrap; }
+    .duration-pill.milestone { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); color: #fff; }
+    .duration-pill.range { background: #eef1f6; color: var(--navy); }
+
+    /* Exclude button */
+    .btn-exclude { padding: 4px 12px; border-radius: 3px; border: 1px solid var(--border); background: #fff; font-size: 11px; font-weight: 600; cursor: pointer; transition: var(--transition); color: var(--ink-muted); white-space: nowrap; }
+    .btn-exclude:hover { border-color: var(--accent-red); color: var(--accent-red); background: #fef2f2; }
+    .btn-exclude.active { border-color: var(--accent-green); color: var(--accent-green); background: #f0fdf4; }
+
+    /* Add Phase */
+    .add-phase-row { display: flex; justify-content: center; padding: 14px; border-top: 1px dashed var(--border); background: var(--bg-card); border-radius: 0 0 var(--radius) var(--radius); }
+    .btn-add { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px dashed var(--border); border-radius: var(--radius-sm); background: transparent; font-family: var(--font-sans); font-size: 12px; font-weight: 600; color: var(--ink-muted); cursor: pointer; transition: var(--transition); }
+    .btn-add:hover { border-color: var(--navy); color: var(--navy); background: rgba(30,42,74,0.03); }
+
+    /* ══════════════════════════════════════════════════════════════════
+       TAB SWITCHER
+       ══════════════════════════════════════════════════════════════════ */
+    .view-section { margin-top: 32px; }
+    .view-section > h2 {
+      font-family: var(--font-serif); font-size: 18px; font-weight: 600;
+      color: var(--navy); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .tab-bar {
+      display: inline-flex; background: var(--border-light); border-radius: 8px;
+      padding: 3px; gap: 2px; margin-bottom: 18px;
+    }
+    .tab-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border: none; border-radius: 6px;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 600;
+      letter-spacing: 0.3px; cursor: pointer; transition: var(--transition);
+      background: transparent; color: var(--ink-muted);
+    }
+    .tab-btn:hover { color: var(--ink); background: rgba(255,255,255,0.5); }
+    .tab-btn.active { background: var(--navy); color: #fff; box-shadow: var(--shadow); }
+    .tab-btn svg, .tab-btn i { width: 14px; height: 14px; }
+
+    .view-panel { display: none; }
+    .view-panel.active { display: block; animation: fadeInUp 0.3s ease; }
+
+    /* ══════════════════════════════════════════════════════════════════
+       GANTT CHART
+       ══════════════════════════════════════════════════════════════════ */
+    .gantt-container {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; overflow-x: auto;
+    }
+    .gantt-axis { display: flex; justify-content: space-between; padding: 0 0 8px 180px; border-bottom: 1px solid var(--border-light); margin-bottom: 6px; position: relative; }
+    .gantt-axis-label { font-family: var(--font-mono); font-size: 10px; color: var(--ink-muted); text-align: center; flex: 1; }
+    .gantt-row { display: flex; align-items: center; height: 32px; margin-bottom: 3px; position: relative; }
+    .gantt-row-label { width: 180px; min-width: 180px; font-size: 11px; font-weight: 500; color: var(--ink-light); padding-right: 16px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gantt-row-track {
+      flex: 1; height: 100%; position: relative;
+      background: repeating-linear-gradient(90deg, transparent, transparent calc(100% / 7 - 1px), var(--border-light) calc(100% / 7 - 1px), var(--border-light) calc(100% / 7));
+    }
+    .gantt-bar {
+      position: absolute; top: 4px; height: 24px; border-radius: 4px; min-width: 6px;
+      transition: var(--transition); cursor: default; display: flex; align-items: center;
+      padding: 0 8px; font-size: 9px; font-weight: 600; color: #fff; letter-spacing: 0.5px;
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    }
+    .gantt-bar:hover { filter: brightness(1.1); box-shadow: var(--shadow-md); transform: scaleY(1.15); z-index: 5; }
+    .gantt-bar.milestone-bar { width: 10px !important; min-width: 10px; border-radius: 2px; padding: 0; }
+    .gantt-bar.cat-strategy   { background: linear-gradient(135deg, #1e2a4a, #2c3e6b); }
+    .gantt-bar.cat-solution   { background: linear-gradient(135deg, #2d6b4a, #3d8b6a); }
+    .gantt-bar.cat-content    { background: linear-gradient(135deg, #6b4a2d, #8b6a4d); }
+    .gantt-bar.cat-reviews    { background: linear-gradient(135deg, #8b6914, #ab8934); }
+    .gantt-bar.cat-governance { background: linear-gradient(135deg, #5a3d6b, #7a5d8b); }
+
+    .today-marker { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent-red); z-index: 10; pointer-events: none; }
+    .today-marker::before { content: 'TODAY'; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 8px; font-weight: 700; letter-spacing: 1.5px; color: var(--accent-red); white-space: nowrap; }
+
+    .gantt-legend { display: flex; gap: 20px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-light); flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-muted); }
+    .legend-swatch { width: 14px; height: 10px; border-radius: 2px; }
+
+    /* ══════════════════════════════════════════════════════════════════
+       ROADMAP VIEW
+       ══════════════════════════════════════════════════════════════════ */
+    .roadmap-container {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px 24px 16px; overflow-x: auto;
+    }
+    .roadmap-header-row {
+      display: flex; padding-left: 150px; margin-bottom: 2px;
+      border-bottom: 2px solid var(--border); padding-bottom: 10px;
+    }
+    .roadmap-week-label {
+      flex: 1; text-align: center; font-family: var(--font-mono); font-size: 10px;
+      font-weight: 600; color: var(--ink-muted); letter-spacing: 0.5px; min-width: 0;
+    }
+    .roadmap-lane {
+      margin-top: 12px; padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .roadmap-lane:last-child { border-bottom: none; }
+    .roadmap-lane-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+      margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+    }
+    .roadmap-lane-dot { width: 8px; height: 8px; border-radius: 2px; }
+    .roadmap-track {
+      position: relative; min-height: 34px; margin-left: 150px;
+    }
+    .roadmap-bar {
+      position: absolute; height: 26px; border-radius: 5px; top: 4px;
+      display: flex; align-items: center; padding: 0 10px;
+      font-size: 10px; font-weight: 600; color: #fff; letter-spacing: 0.3px;
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+      transition: var(--transition); cursor: default; min-width: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .roadmap-bar:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: var(--shadow-md); z-index: 5; }
+    .roadmap-bar.cat-strategy   { background: linear-gradient(135deg, #1e2a4a, #3a5080); }
+    .roadmap-bar.cat-solution   { background: linear-gradient(135deg, #2d6b4a, #4a9b72); }
+    .roadmap-bar.cat-content    { background: linear-gradient(135deg, #6b4a2d, #9b7a5d); }
+    .roadmap-bar.cat-reviews    { background: linear-gradient(135deg, #8b6914, #bb9944); }
+    .roadmap-bar.cat-governance { background: linear-gradient(135deg, #5a3d6b, #8a6d9b); }
+    .roadmap-milestone {
+      position: absolute; top: 6px; width: 22px; height: 22px;
+      transform: rotate(45deg); border-radius: 3px; cursor: default;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2); transition: var(--transition);
+    }
+    .roadmap-milestone:hover { transform: rotate(45deg) scale(1.2); }
+    .roadmap-milestone.cat-strategy   { background: var(--cat-strategy); }
+    .roadmap-milestone.cat-solution   { background: var(--cat-solution); }
+    .roadmap-milestone.cat-content    { background: var(--cat-content); }
+    .roadmap-milestone.cat-reviews    { background: var(--cat-reviews); }
+    .roadmap-milestone.cat-governance { background: var(--cat-governance); }
+    .roadmap-today {
+      position: absolute; top: 0; bottom: 0; width: 2px;
+      background: var(--accent-red); z-index: 8; pointer-events: none;
+      margin-left: 150px;
+    }
+    .roadmap-today::before {
+      content: 'TODAY'; position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+      font-size: 8px; font-weight: 700; letter-spacing: 1.5px; color: var(--accent-red);
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       STEPPER VIEW
+       ══════════════════════════════════════════════════════════════════ */
+    .stepper-container {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px 40px;
+    }
+    .stepper-list { position: relative; }
+    .stepper-item {
+      display: flex; gap: 20px; position: relative;
+      padding-bottom: 8px; min-height: 70px;
+    }
+    .stepper-item:last-child { padding-bottom: 0; min-height: auto; }
+    /* vertical connector */
+    .stepper-line {
+      position: absolute; left: 17px; top: 36px; bottom: 0; width: 2px;
+      background: var(--border); z-index: 0;
+    }
+    .stepper-item:last-child .stepper-line { display: none; }
+    .stepper-line.completed { background: var(--accent-green); }
+    .stepper-line.active { background: linear-gradient(to bottom, var(--accent-green) 0%, var(--border) 100%); }
+
+    /* node circle */
+    .stepper-node {
+      width: 36px; height: 36px; min-width: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; z-index: 1; transition: var(--transition);
+      border: 3px solid var(--border); background: var(--bg);
+      color: var(--ink-muted);
+    }
+    .stepper-node.completed {
+      border-color: var(--accent-green); background: var(--accent-green); color: #fff;
+    }
+    .stepper-node.active {
+      border-color: var(--navy); background: #fff; color: var(--navy);
+      box-shadow: 0 0 0 4px rgba(30,42,74,0.12);
+      animation: pulse-ring 2s ease-in-out infinite;
+    }
+    .stepper-node.milestone-node {
+      border-radius: 4px; transform: rotate(45deg);
+    }
+    .stepper-node.milestone-node span { transform: rotate(-45deg); display: block; }
+
+    @keyframes pulse-ring {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(30,42,74,0.12); }
+      50%      { box-shadow: 0 0 0 8px rgba(30,42,74,0.06); }
+    }
+
+    /* step body */
+    .stepper-body { flex: 1; padding-top: 4px; }
+    .stepper-name { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+    .stepper-name.completed-text { color: var(--accent-green); }
+    .stepper-name.upcoming-text { color: var(--ink-muted); }
+    .stepper-meta {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      font-size: 11px; color: var(--ink-muted); margin-top: 2px;
+    }
+    .stepper-meta-item { display: flex; align-items: center; gap: 4px; }
+    .stepper-status-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    }
+    .status-completed { background: #e8f5e9; color: #2e7d32; }
+    .status-active    { background: #e3f2fd; color: #1565c0; }
+    .status-upcoming  { background: #f5f5f5; color: #9e9e9e; }
+
+    /* ══════════════════════════════════════════════════════════════════
+       CALENDAR VIEW
+       ══════════════════════════════════════════════════════════════════ */
+    .calendar-container {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px;
+    }
+    .calendar-nav {
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      margin-bottom: 16px;
+    }
+    .calendar-nav-btn {
+      width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 6px;
+      background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: var(--transition); color: var(--ink-light);
+    }
+    .calendar-nav-btn:hover { background: var(--border-light); }
+    .calendar-month-title {
+      font-family: var(--font-serif); font-size: 16px; font-weight: 600;
+      color: var(--navy); min-width: 180px; text-align: center;
+    }
+    .calendar-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
+      background: var(--border-light); border: 1px solid var(--border); border-radius: 6px;
+      overflow: hidden;
+    }
+    .calendar-dow {
+      background: var(--navy); color: #fff; padding: 8px 4px;
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; text-align: center;
+    }
+    .calendar-cell {
+      background: #fff; min-height: 80px; padding: 4px 6px;
+      position: relative; transition: var(--transition);
+    }
+    .calendar-cell:hover { background: #fafaf6; }
+    .calendar-cell.empty { background: #faf9f6; }
+    .calendar-cell.today { box-shadow: inset 0 0 0 2px var(--accent-red); z-index: 2; }
+    .calendar-cell.weekend { background: #f9f7f2; }
+    .calendar-day-num {
+      font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+      color: var(--ink-muted); margin-bottom: 4px;
+    }
+    .calendar-cell.today .calendar-day-num {
+      color: var(--accent-red); font-weight: 700;
+    }
+    .calendar-event {
+      display: block; padding: 2px 5px; margin-bottom: 2px;
+      border-radius: 3px; font-size: 9px; font-weight: 600;
+      color: #fff; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+      cursor: default; transition: var(--transition); letter-spacing: 0.2px;
+    }
+    .calendar-event:hover { filter: brightness(1.15); }
+    .calendar-event.cat-strategy   { background: var(--cat-strategy); }
+    .calendar-event.cat-solution   { background: var(--cat-solution); }
+    .calendar-event.cat-content    { background: var(--cat-content); }
+    .calendar-event.cat-reviews    { background: var(--cat-reviews); }
+    .calendar-event.cat-governance { background: var(--cat-governance); }
+    .calendar-event.milestone-ev {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    }
+
+    /* ── Shared ───────────────────────────────────────────────────── */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--ink-muted); }
+    .empty-state p { font-size: 14px; margin-top: 8px; }
+    .phase-name { font-weight: 500; color: var(--ink); }
+
+    /* ── Toast ─────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 30px; right: 30px; background: var(--navy); color: #fff;
+      padding: 12px 24px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+      box-shadow: var(--shadow-lg); z-index: 9999; opacity: 0; transform: translateY(20px);
+      transition: all 0.3s ease; pointer-events: none;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Animations ────────────────────────────────────────────────── */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-in { animation: fadeInUp 0.4s ease forwards; }
+
+    /* ── Responsive ────────────────────────────────────────────────── */
+    @media (max-width: 1200px) { .controls-grid { grid-template-columns: 1fr 1fr; } .metrics-bar { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) { .container { padding: 0 16px 40px; } .app-header { padding: 20px; } .controls-grid { grid-template-columns: 1fr; } .metrics-bar { grid-template-columns: 1fr 1fr; } .header-badge { display: none; } .tab-bar { flex-wrap: wrap; } }
+
+    /* ── Scrollbar ─────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--ink-muted); }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Header ──────────────────────────────────────────────────── -->
+  <header class="app-header">
+    <div class="header-content">
+      <div>
+        <h1 class="header-title">Bid Timeline Planner</h1>
+        <p class="header-subtitle">Bid Management — Planning Suite</p>
+      </div>
+      <span class="header-badge">v 2.0</span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- ─── Controls Panel ──────────────────────────────────────── -->
+    <section class="controls-panel animate-in" style="animation-delay: 0.1s">
+      <h2><i data-lucide="settings-2" style="width:18px;height:18px;"></i> Plan Configuration</h2>
+      <div class="controls-grid">
+        <div class="form-group">
+          <label for="bidName">Bid / Opportunity Name</label>
+          <input type="text" id="bidName" placeholder="e.g. Cloud Migration RFP" />
+        </div>
+        <div class="form-group">
+          <label for="rfpRelease">RFP Release Date</label>
+          <input type="date" id="rfpRelease" />
+        </div>
+        <div class="form-group">
+          <label for="submission">Submission Deadline</label>
+          <input type="date" id="submission" />
+        </div>
+        <div class="form-group">
+          <label for="qaDeadline">Client Q&amp;A Deadline <span style="opacity:.5">(Opt.)</span></label>
+          <input type="date" id="qaDeadline" />
+        </div>
+        <div class="form-group">
+          <label for="reviewCycle">Template / Review Cycle</label>
+          <select id="reviewCycle">
+            <!-- populated dynamically -->
+          </select>
+          <div class="template-desc" id="templateDesc"></div>
+        </div>
+      </div>
+      <div class="actions-bar">
+        <button class="btn btn-primary" onclick="generatePlan()">
+          <i data-lucide="play" style="width:14px;height:14px;"></i> Generate Plan
+        </button>
+        <button class="btn btn-secondary" onclick="resetToSample()">
+          <i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i> Reset to Sample
+        </button>
+        <button class="btn btn-green btn-sm" onclick="savePlan()">
+          <i data-lucide="save" style="width:13px;height:13px;"></i> Save
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="togglePlansPanel()">
+          <i data-lucide="folder-open" style="width:13px;height:13px;"></i> Load
+        </button>
+        <div class="actions-bar-right">
+          <button class="btn btn-gold btn-sm" onclick="exportCSV()">
+            <i data-lucide="file-spreadsheet" style="width:13px;height:13px;"></i> CSV
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="exportJSON()">
+            <i data-lucide="file-json" style="width:13px;height:13px;"></i> JSON
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('importInput').click()">
+            <i data-lucide="upload" style="width:13px;height:13px;"></i> Import
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="printPlan()">
+            <i data-lucide="printer" style="width:13px;height:13px;"></i> PDF
+          </button>
+        </div>
+        <input type="file" id="importInput" class="hidden-input" accept=".json" onchange="importJSON(event)" />
+      </div>
+      <!-- Saved Plans Panel -->
+      <div class="plans-panel" id="plansPanel">
+        <h3><i data-lucide="archive" style="width:15px;height:15px;"></i> Saved Plans</h3>
+        <div class="plans-list" id="plansList"><div class="plans-empty">No saved plans yet</div></div>
+      </div>
+    </section>
+
+    <!-- ─── Metrics Bar ─────────────────────────────────────────── -->
+    <div class="metrics-bar animate-in" style="animation-delay: 0.2s" id="metricsBar">
+      <div class="metric-card"><div class="metric-label">Bid Name</div><div class="metric-value" id="metricName">&mdash;</div></div>
+      <div class="metric-card"><div class="metric-label">RFP Release</div><div class="metric-value" id="metricRelease">&mdash;</div></div>
+      <div class="metric-card"><div class="metric-label">Submission</div><div class="metric-value" id="metricSubmission">&mdash;</div></div>
+      <div class="metric-card"><div class="metric-label">Total Window</div><div class="metric-value highlight" id="metricWindow">&mdash;</div></div>
+      <div class="metric-card"><div class="metric-label">Days to Deadline</div><div class="metric-value urgent" id="metricDeadline">&mdash;</div></div>
+    </div>
+
+    <!-- ─── Phase Table ─────────────────────────────────────────── -->
+    <section class="table-section animate-in" style="animation-delay: 0.3s">
+      <div class="table-header">
+        <h2><i data-lucide="list-checks" style="width:18px;height:18px;"></i> Date-wise Bid Plan</h2>
+        <span class="phase-count" id="phaseCount"></span>
+      </div>
+      <table class="phase-table" id="phaseTable">
+        <thead>
+          <tr>
+            <th style="width: 30px">#</th>
+            <th>Phase</th>
+            <th>Category</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Duration</th>
+            <th>Owner</th>
+            <th style="width: 100px">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="phaseTableBody">
+          <tr><td colspan="8" class="empty-state"><p>Generate a plan to see phases here</p></td></tr>
+        </tbody>
+      </table>
+      <div class="add-phase-row" id="addPhaseRow" style="display:none;">
+        <button class="btn-add" onclick="addPhase()">
+          <i data-lucide="plus-circle" style="width:14px;height:14px;"></i> Add Phase
+        </button>
+      </div>
+    </section>
+
+    <!-- ─── Visual Timeline (Tabbed) ────────────────────────────── -->
+    <section class="view-section animate-in" style="animation-delay: 0.4s">
+      <h2><i data-lucide="layout-dashboard" style="width:18px;height:18px;"></i> Visual Timeline</h2>
+
+      <div class="tab-bar" id="tabBar">
+        <button class="tab-btn active" data-view="gantt" onclick="switchView('gantt')">
+          <i data-lucide="gantt-chart"></i> Gantt
+        </button>
+        <button class="tab-btn" data-view="roadmap" onclick="switchView('roadmap')">
+          <i data-lucide="map"></i> Roadmap
+        </button>
+        <button class="tab-btn" data-view="stepper" onclick="switchView('stepper')">
+          <i data-lucide="git-commit-vertical"></i> Stepper
+        </button>
+        <button class="tab-btn" data-view="calendar" onclick="switchView('calendar')">
+          <i data-lucide="calendar-days"></i> Calendar
+        </button>
+      </div>
+
+      <!-- Gantt Panel -->
+      <div class="view-panel active" id="panel-gantt">
+        <div class="gantt-container" id="ganttContainer">
+          <div class="empty-state"><p>Generate a plan to see the Gantt timeline</p></div>
+        </div>
+      </div>
+
+      <!-- Roadmap Panel -->
+      <div class="view-panel" id="panel-roadmap">
+        <div class="roadmap-container" id="roadmapContainer">
+          <div class="empty-state"><p>Generate a plan to see the Roadmap</p></div>
+        </div>
+      </div>
+
+      <!-- Stepper Panel -->
+      <div class="view-panel" id="panel-stepper">
+        <div class="stepper-container" id="stepperContainer">
+          <div class="empty-state"><p>Generate a plan to see the Stepper</p></div>
+        </div>
+      </div>
+
+      <!-- Calendar Panel -->
+      <div class="view-panel" id="panel-calendar">
+        <div class="calendar-container" id="calendarContainer">
+          <div class="empty-state"><p>Generate a plan to see the Calendar</p></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ─── Application Logic ────────────────────────────────────── -->
+  <script>
+    /* ================================================================
+       STATE
+       ================================================================ */
+    let STATE = {
+      bidName: '', rfpRelease: '', submission: '', qaDeadline: '',
+      reviewCycle: 'full', phases: [], totalWindow: 0, daysToDeadline: 0,
+    };
+    let activeView = 'gantt';
+    let calendarMonth = null;  // Date object for currently displayed month
+
+    /* ================================================================
+       HELPERS
+       ================================================================ */
+    function fmt(dateStr) {
+      if (!dateStr) return '\u2014';
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    function fmtShort(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    function diffDays(a, b) {
+      return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000);
+    }
+    function toISO(d) { return d.toISOString().slice(0, 10); }
+    function todayISO() { return toISO(new Date()); }
+
+    function catClass(category) {
+      if (category.includes('STRATEGY'))   return 'cat-strategy';
+      if (category.includes('SOLUTION'))   return 'cat-solution';
+      if (category.includes('CONTENT'))    return 'cat-content';
+      if (category.includes('REVIEW'))     return 'cat-reviews';
+      if (category.includes('GOVERNANCE')) return 'cat-governance';
+      return 'cat-strategy';
+    }
+    function catColor(category) {
+      const map = { 'STRATEGY': '#1e2a4a', 'SOLUTION': '#2d6b4a', 'CONTENT': '#6b4a2d', 'REVIEW': '#8b6914', 'GOVERNANCE': '#5a3d6b' };
+      for (const [k, v] of Object.entries(map)) { if (category.includes(k)) return v; }
+      return '#1e2a4a';
+    }
+
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('visible');
+      setTimeout(() => el.classList.remove('visible'), 2500);
+    }
+
+    /* ================================================================
+       TAB SWITCHING
+       ================================================================ */
+    function switchView(view) {
+      activeView = view;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + view));
+      renderActiveView();
+    }
+
+    function renderActiveView() {
+      switch (activeView) {
+        case 'gantt':    renderGantt(); break;
+        case 'roadmap':  renderRoadmap(); break;
+        case 'stepper':  renderStepper(); break;
+        case 'calendar': renderCalendar(); break;
+      }
+    }
+
+    /* ================================================================
+       RENDER — MAIN
+       ================================================================ */
+    function render() {
+      // Metrics
+      document.getElementById('metricName').textContent       = STATE.bidName || '\u2014';
+      document.getElementById('metricRelease').textContent     = fmt(STATE.rfpRelease);
+      document.getElementById('metricSubmission').textContent  = fmt(STATE.submission);
+      document.getElementById('metricWindow').textContent      = STATE.totalWindow ? STATE.totalWindow + ' days' : '\u2014';
+      const ddl = STATE.daysToDeadline;
+      document.getElementById('metricDeadline').textContent    = ddl != null && STATE.submission ? ddl + ' days' : '\u2014';
+
+      // Form sync
+      document.getElementById('bidName').value     = STATE.bidName;
+      document.getElementById('rfpRelease').value  = STATE.rfpRelease;
+      document.getElementById('submission').value   = STATE.submission;
+      document.getElementById('qaDeadline').value   = STATE.qaDeadline;
+      document.getElementById('reviewCycle').value   = STATE.reviewCycle;
+
+      // Reset calendar month
+      if (STATE.rfpRelease) calendarMonth = new Date(STATE.rfpRelease + 'T00:00:00');
+
+      renderTable();
+      renderActiveView();
+    }
+
+    /* ================================================================
+       RENDER — TABLE
+       ================================================================ */
+    function renderTable() {
+      const tbody = document.getElementById('phaseTableBody');
+      const phases = STATE.phases;
+      const activeCount = phases.filter(p => !p.excluded).length;
+      document.getElementById('phaseCount').textContent = phases.length ? `${activeCount} active / ${phases.length} total` : '';
+      document.getElementById('addPhaseRow').style.display = phases.length ? '' : 'none';
+
+      if (!phases.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><p>Generate a plan to see phases here</p></td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = phases.map((ph, i) => `
+        <tr class="${ph.excluded ? 'excluded' : ''}" data-idx="${i}">
+          <td style="color:var(--ink-muted);font-family:var(--font-mono);font-size:11px;">${i + 1}</td>
+          <td class="phase-name">${ph.name}</td>
+          <td><span class="category-badge ${catClass(ph.category)}">${ph.category}</span></td>
+          <td><input type="date" class="inline-input" value="${ph.startDate}" onchange="updatePhaseDate(${i},'startDate',this.value)" /></td>
+          <td><input type="date" class="inline-input" value="${ph.endDate}" onchange="updatePhaseDate(${i},'endDate',this.value)" /></td>
+          <td><span class="duration-pill ${ph.duration === 0 ? 'milestone' : 'range'}">${ph.duration === 0 ? '\u25C6 Milestone' : ph.label}</span></td>
+          <td><input type="text" class="inline-input owner-input" value="${ph.owner}" onchange="updatePhaseOwner(${i},this.value)" placeholder="Assignee" /></td>
+          <td>
+            <button class="btn-exclude ${ph.excluded ? 'active' : ''}" onclick="toggleExclude(${i})">
+              ${ph.excluded ? '\u21A9 INCLUDE' : '\u2715 EXCLUDE'}
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    /* ================================================================
+       RENDER — GANTT
+       ================================================================ */
+    function renderGantt() {
+      const container = document.getElementById('ganttContainer');
+      const active = STATE.phases.filter(p => !p.excluded);
+
+      if (!active.length || !STATE.rfpRelease || !STATE.submission) {
+        container.innerHTML = '<div class="empty-state"><p>Generate a plan to see the Gantt timeline</p></div>';
+        return;
+      }
+
+      const startMs = new Date(STATE.rfpRelease + 'T00:00:00').getTime();
+      const endMs   = new Date(STATE.submission + 'T00:00:00').getTime();
+      const spanMs  = endMs - startMs || 1;
+      const todayMs = new Date().setHours(0,0,0,0);
+      const totalDays = STATE.totalWindow;
+      const step = Math.max(1, Math.ceil(totalDays / 7));
+
+      let axisLabels = '';
+      for (let d = 0; d <= totalDays; d += step) {
+        const dt = new Date(startMs + d * 86400000);
+        axisLabels += `<span class="gantt-axis-label">${dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>`;
+      }
+
+      let todayPct = ((todayMs - startMs) / spanMs) * 100;
+      let todayHTML = '';
+      if (todayPct >= 0 && todayPct <= 100) todayHTML = `<div class="today-marker" style="left:${todayPct}%"></div>`;
+
+      let rowsHTML = '';
+      active.forEach(ph => {
+        const phStartMs = new Date(ph.startDate + 'T00:00:00').getTime();
+        const phEndMs   = new Date(ph.endDate + 'T00:00:00').getTime();
+        const leftPct  = Math.max(0, ((phStartMs - startMs) / spanMs) * 100);
+        const widthPct = Math.max(0.5, ((phEndMs - phStartMs) / spanMs) * 100);
+        const isMilestone = ph.duration === 0;
+        rowsHTML += `
+          <div class="gantt-row">
+            <div class="gantt-row-label" title="${ph.name}">${ph.name}</div>
+            <div class="gantt-row-track">
+              ${todayHTML}
+              <div class="gantt-bar ${catClass(ph.category)} ${isMilestone ? 'milestone-bar' : ''}"
+                   style="left:${leftPct}%;width:${isMilestone ? '10px' : widthPct + '%'}"
+                   title="${ph.name}: ${fmt(ph.startDate)} \u2192 ${fmt(ph.endDate)}">
+                ${isMilestone ? '' : ph.name}
+              </div>
+            </div>
+          </div>`;
+      });
+
+      const cats = [...new Set(active.map(p => p.category))];
+      const legendHTML = cats.map(c => `<div class="legend-item"><div class="legend-swatch ${catClass(c)}"></div>${c}</div>`).join('');
+
+      container.innerHTML = `
+        <div class="gantt-axis">${axisLabels}</div>
+        ${rowsHTML}
+        <div class="gantt-legend">
+          ${legendHTML}
+          <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-red);width:3px;"></div>Today</div>
+        </div>`;
+    }
+
+    /* ================================================================
+       RENDER — ROADMAP
+       ================================================================ */
+    function renderRoadmap() {
+      const container = document.getElementById('roadmapContainer');
+      const active = STATE.phases.filter(p => !p.excluded);
+
+      if (!active.length || !STATE.rfpRelease || !STATE.submission) {
+        container.innerHTML = '<div class="empty-state"><p>Generate a plan to see the Roadmap</p></div>';
+        return;
+      }
+
+      const startMs = new Date(STATE.rfpRelease + 'T00:00:00').getTime();
+      const endMs   = new Date(STATE.submission + 'T00:00:00').getTime();
+      const spanMs  = endMs - startMs || 1;
+      const totalDays = STATE.totalWindow;
+      const todayMs = new Date().setHours(0,0,0,0);
+
+      // Week labels for header
+      const weeks = Math.ceil(totalDays / 7);
+      let weekLabels = '';
+      for (let w = 0; w < weeks; w++) {
+        const dt = new Date(startMs + w * 7 * 86400000);
+        weekLabels += `<span class="roadmap-week-label">Wk ${w + 1}<br><span style="font-weight:400;font-size:9px;">${dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span></span>`;
+      }
+
+      // Group by category
+      const categories = ['STRATEGY & PLANNING', 'SOLUTION & PRICING', 'CONTENT DEVELOPMENT', 'REVIEWS', 'GOVERNANCE'];
+      const grouped = {};
+      categories.forEach(c => grouped[c] = []);
+      active.forEach(ph => {
+        const key = categories.find(c => ph.category.includes(c.split(' ')[0])) || 'GOVERNANCE';
+        grouped[key].push(ph);
+      });
+
+      // Today marker
+      let todayPct = ((todayMs - startMs) / spanMs) * 100;
+      let todayMarker = '';
+      if (todayPct >= 0 && todayPct <= 100) {
+        todayMarker = `<div class="roadmap-today" style="left:calc(150px + ${todayPct}% * (100% - 150px) / 100%)"></div>`;
+      }
+
+      let lanesHTML = '';
+      categories.forEach(cat => {
+        const phases = grouped[cat];
+        if (!phases.length) return;
+        const cc = catClass(cat);
+        const color = catColor(cat);
+
+        let barsHTML = '';
+        phases.forEach(ph => {
+          const phStartMs = new Date(ph.startDate + 'T00:00:00').getTime();
+          const phEndMs   = new Date(ph.endDate + 'T00:00:00').getTime();
+          const leftPct  = Math.max(0, ((phStartMs - startMs) / spanMs) * 100);
+          const widthPct = Math.max(0.8, ((phEndMs - phStartMs) / spanMs) * 100);
+          const isMilestone = ph.duration === 0;
+
+          if (isMilestone) {
+            barsHTML += `<div class="roadmap-milestone ${cc}" style="left:${leftPct}%" title="${ph.name}: ${fmtShort(ph.startDate)}"></div>`;
+          } else {
+            barsHTML += `<div class="roadmap-bar ${cc}" style="left:${leftPct}%;width:${widthPct}%" title="${ph.name}: ${fmtShort(ph.startDate)} \u2192 ${fmtShort(ph.endDate)}">${ph.name}</div>`;
+          }
+        });
+
+        lanesHTML += `
+          <div class="roadmap-lane">
+            <div class="roadmap-lane-title" style="color:${color}">
+              <div class="roadmap-lane-dot" style="background:${color}"></div>
+              ${cat}
+            </div>
+            <div class="roadmap-track">${barsHTML}</div>
+          </div>`;
+      });
+
+      container.innerHTML = `
+        <div class="roadmap-header-row">${weekLabels}</div>
+        <div style="position:relative;">
+          ${todayPct >= 0 && todayPct <= 100 ? `<div class="roadmap-today" style="left:calc(150px + (100% - 150px) * ${todayPct / 100})"></div>` : ''}
+          ${lanesHTML}
+        </div>
+        <div class="gantt-legend" style="margin-top:14px;padding-top:12px;">
+          ${categories.filter(c => grouped[c].length).map(c => `<div class="legend-item"><div class="legend-swatch ${catClass(c)}"></div>${c}</div>`).join('')}
+          <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-red);width:3px;"></div>Today</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:var(--gold);width:12px;height:12px;border-radius:2px;transform:rotate(45deg);"></div>Milestone</div>
+        </div>`;
+    }
+
+    /* ================================================================
+       RENDER — STEPPER
+       ================================================================ */
+    function renderStepper() {
+      const container = document.getElementById('stepperContainer');
+      const active = STATE.phases.filter(p => !p.excluded);
+
+      if (!active.length) {
+        container.innerHTML = '<div class="empty-state"><p>Generate a plan to see the Stepper</p></div>';
+        return;
+      }
+
+      const today = todayISO();
+
+      let html = '<div class="stepper-list">';
+      active.forEach((ph, i) => {
+        const isCompleted = ph.endDate < today;
+        const isActive    = ph.startDate <= today && ph.endDate >= today;
+        const isUpcoming  = ph.startDate > today;
+        const isMilestone = ph.duration === 0;
+
+        // Status
+        let statusClass = 'upcoming';
+        let statusLabel = 'UPCOMING';
+        let nodeClass   = '';
+        let lineClass   = '';
+        let nameClass   = 'upcoming-text';
+
+        if (isCompleted)  { statusClass = 'completed'; statusLabel = 'COMPLETED'; nodeClass = 'completed'; lineClass = 'completed'; nameClass = 'completed-text'; }
+        else if (isActive){ statusClass = 'active';    statusLabel = 'IN PROGRESS'; nodeClass = 'active'; lineClass = 'active'; nameClass = ''; }
+
+        // Node content
+        let nodeContent = '';
+        if (isCompleted)  nodeContent = '\u2713';  // checkmark
+        else              nodeContent = `${i + 1}`;
+
+        html += `
+          <div class="stepper-item">
+            <div style="position:relative;display:flex;flex-direction:column;align-items:center;">
+              <div class="stepper-node ${nodeClass} ${isMilestone ? 'milestone-node' : ''}">
+                <span>${nodeContent}</span>
+              </div>
+              <div class="stepper-line ${lineClass}"></div>
+            </div>
+            <div class="stepper-body">
+              <div class="stepper-name ${nameClass}">${ph.name}</div>
+              <div class="stepper-meta">
+                <span class="stepper-meta-item">
+                  <i data-lucide="calendar" style="width:12px;height:12px;"></i>
+                  ${fmtShort(ph.startDate)}${ph.duration > 0 ? ' \u2192 ' + fmtShort(ph.endDate) : ''}
+                </span>
+                <span class="stepper-meta-item">
+                  <i data-lucide="clock" style="width:12px;height:12px;"></i>
+                  ${isMilestone ? 'Milestone' : ph.label}
+                </span>
+                <span class="stepper-meta-item">
+                  <i data-lucide="user" style="width:12px;height:12px;"></i>
+                  ${ph.owner}
+                </span>
+                <span class="category-badge ${catClass(ph.category)}" style="font-size:8px;padding:2px 6px;">${ph.category}</span>
+                <span class="stepper-status-badge status-${statusClass}">${statusLabel}</span>
+              </div>
+            </div>
+          </div>`;
+      });
+      html += '</div>';
+
+      container.innerHTML = html;
+      // Re-init lucide icons for newly added elements
+      lucide.createIcons();
+    }
+
+    /* ================================================================
+       RENDER — CALENDAR
+       ================================================================ */
+    let calendarDisplayMonth = null;
+
+    function renderCalendar() {
+      const container = document.getElementById('calendarContainer');
+      const active = STATE.phases.filter(p => !p.excluded);
+
+      if (!active.length || !STATE.rfpRelease) {
+        container.innerHTML = '<div class="empty-state"><p>Generate a plan to see the Calendar</p></div>';
+        return;
+      }
+
+      if (!calendarDisplayMonth) {
+        calendarDisplayMonth = new Date(STATE.rfpRelease + 'T00:00:00');
+      }
+
+      const year  = calendarDisplayMonth.getFullYear();
+      const month = calendarDisplayMonth.getMonth();
+      const monthName = calendarDisplayMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      // First day of month & total days
+      const firstDay = new Date(year, month, 1);
+      const lastDay  = new Date(year, month + 1, 0);
+      const startDow = firstDay.getDay(); // 0=Sun
+      const daysInMonth = lastDay.getDate();
+
+      const todayStr = todayISO();
+
+      // Build events map: day -> [phases]
+      const eventsMap = {};
+      active.forEach(ph => {
+        const phStart = new Date(ph.startDate + 'T00:00:00');
+        const phEnd   = new Date(ph.endDate + 'T00:00:00');
+
+        // Iterate days this phase spans in this month
+        const iterStart = new Date(Math.max(phStart.getTime(), firstDay.getTime()));
+        const iterEnd   = new Date(Math.min(phEnd.getTime(), lastDay.getTime()));
+
+        for (let d = new Date(iterStart); d <= iterEnd; d.setDate(d.getDate() + 1)) {
+          if (d.getMonth() !== month) continue;
+          const dayNum = d.getDate();
+          if (!eventsMap[dayNum]) eventsMap[dayNum] = [];
+          eventsMap[dayNum].push(ph);
+        }
+      });
+
+      // DOW headers
+      const dows = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      let gridHTML = dows.map(d => `<div class="calendar-dow">${d}</div>`).join('');
+
+      // Empty cells before day 1
+      for (let i = 0; i < startDow; i++) {
+        gridHTML += '<div class="calendar-cell empty"></div>';
+      }
+
+      // Day cells
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateObj = new Date(year, month, day);
+        const dateStr = toISO(dateObj);
+        const isToday = dateStr === todayStr;
+        const dow = dateObj.getDay();
+        const isWeekend = dow === 0 || dow === 6;
+
+        let cellClasses = 'calendar-cell';
+        if (isToday)   cellClasses += ' today';
+        if (isWeekend) cellClasses += ' weekend';
+
+        const events = eventsMap[day] || [];
+        // De-duplicate and limit to 3 visible
+        const seen = new Set();
+        let eventsHTML = '';
+        let count = 0;
+        events.forEach(ph => {
+          if (seen.has(ph.id)) return;
+          seen.add(ph.id);
+          if (count < 3) {
+            const isMilestone = ph.duration === 0;
+            eventsHTML += `<div class="calendar-event ${isMilestone ? 'milestone-ev' : catClass(ph.category)}" title="${ph.name}: ${fmtShort(ph.startDate)} \u2192 ${fmtShort(ph.endDate)}">${isMilestone ? '\u25C6 ' : ''}${ph.name}</div>`;
+          }
+          count++;
+        });
+        if (count > 3) {
+          eventsHTML += `<div style="font-size:9px;color:var(--ink-muted);padding:0 4px;">+${count - 3} more</div>`;
+        }
+
+        gridHTML += `
+          <div class="${cellClasses}">
+            <div class="calendar-day-num">${day}</div>
+            ${eventsHTML}
+          </div>`;
+      }
+
+      // Trailing empty cells
+      const totalCells = startDow + daysInMonth;
+      const remainder = totalCells % 7;
+      if (remainder > 0) {
+        for (let i = 0; i < 7 - remainder; i++) {
+          gridHTML += '<div class="calendar-cell empty"></div>';
+        }
+      }
+
+      container.innerHTML = `
+        <div class="calendar-nav">
+          <button class="calendar-nav-btn" onclick="calendarPrev()" title="Previous month">&larr;</button>
+          <span class="calendar-month-title">${monthName}</span>
+          <button class="calendar-nav-btn" onclick="calendarNext()" title="Next month">&rarr;</button>
+        </div>
+        <div class="calendar-grid">${gridHTML}</div>
+        <div class="gantt-legend" style="margin-top:14px;padding-top:12px;">
+          ${[...new Set(active.map(p => p.category))].map(c => `<div class="legend-item"><div class="legend-swatch ${catClass(c)}"></div>${c}</div>`).join('')}
+          <div class="legend-item"><div class="legend-swatch" style="background:linear-gradient(135deg,var(--gold),var(--gold-dark));"></div>Milestone</div>
+        </div>`;
+    }
+
+    function calendarPrev() {
+      calendarDisplayMonth.setMonth(calendarDisplayMonth.getMonth() - 1);
+      renderCalendar();
+    }
+    function calendarNext() {
+      calendarDisplayMonth.setMonth(calendarDisplayMonth.getMonth() + 1);
+      renderCalendar();
+    }
+
+    /* ================================================================
+       ACTIONS
+       ================================================================ */
+    let templatesMeta = [];   // populated on boot
+
+    async function loadTemplates() {
+      try {
+        const res = await fetch('/api/templates');
+        templatesMeta = await res.json();
+        const sel = document.getElementById('reviewCycle');
+        sel.innerHTML = templatesMeta.map(t =>
+          `<option value="${t.key}">${t.label}</option>`
+        ).join('');
+        sel.addEventListener('change', () => {
+          const t = templatesMeta.find(x => x.key === sel.value);
+          document.getElementById('templateDesc').textContent = t ? t.description : '';
+        });
+        // trigger initial description
+        const first = templatesMeta[0];
+        if (first) document.getElementById('templateDesc').textContent = first.description;
+      } catch (e) {
+        console.warn('Could not load templates', e);
+      }
+    }
+
+    async function generatePlan() {
+      const body = {
+        bidName:     document.getElementById('bidName').value,
+        rfpRelease:  document.getElementById('rfpRelease').value,
+        submission:  document.getElementById('submission').value,
+        qaDeadline:  document.getElementById('qaDeadline').value,
+        reviewCycle: document.getElementById('reviewCycle').value,
+      };
+
+      if (!body.rfpRelease || !body.submission) { toast('Please fill in RFP Release and Submission dates'); return; }
+      if (body.rfpRelease >= body.submission)    { toast('Submission must be after RFP Release'); return; }
+
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      STATE = await res.json();
+      calendarDisplayMonth = null;
+      render();
+      toast('Plan generated successfully');
+    }
+
+    async function resetToSample() {
+      const res = await fetch('/api/sample');
+      STATE = await res.json();
+      calendarDisplayMonth = null;
+      render();
+      toast('Reset to sample data');
+    }
+
+    // ── Save / Load ──────────────────────────────────────────────
+    async function savePlan() {
+      if (!STATE.phases.length) { toast('Generate a plan first'); return; }
+      const res = await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(STATE),
+      });
+      const data = await res.json();
+      toast(data.message || 'Plan saved');
+      loadPlansList();
+    }
+
+    function togglePlansPanel() {
+      const panel = document.getElementById('plansPanel');
+      const isOpen = panel.classList.toggle('open');
+      if (isOpen) loadPlansList();
+      lucide.createIcons();
+    }
+
+    async function loadPlansList() {
+      const res = await fetch('/api/plans');
+      const plans = await res.json();
+      const container = document.getElementById('plansList');
+
+      if (!plans.length) {
+        container.innerHTML = '<div class="plans-empty">No saved plans yet. Click Save to store your first plan.</div>';
+        return;
+      }
+
+      container.innerHTML = plans.map(p => {
+        const saved = new Date(p.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="plan-item">
+            <div class="plan-item-info" onclick="loadPlan('${p.filename}')">
+              <div class="plan-item-name">${p.bidName}</div>
+              <div class="plan-item-meta">${p.phaseCount} phases &middot; ${p.rfpRelease} &rarr; ${p.submission} &middot; Saved ${saved}</div>
+            </div>
+            <div class="plan-item-actions">
+              <button onclick="event.stopPropagation();loadPlan('${p.filename}')">Load</button>
+              <button class="delete-btn" onclick="event.stopPropagation();deletePlan('${p.filename}')">Delete</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    async function loadPlan(filename) {
+      const res = await fetch('/api/load/' + filename);
+      if (!res.ok) { toast('Failed to load plan'); return; }
+      STATE = await res.json();
+      calendarDisplayMonth = null;
+      render();
+      document.getElementById('plansPanel').classList.remove('open');
+      toast('Plan loaded: ' + STATE.bidName);
+    }
+
+    async function deletePlan(filename) {
+      if (!confirm('Delete this saved plan?')) return;
+      await fetch('/api/plans/' + filename, { method: 'DELETE' });
+      toast('Plan deleted');
+      loadPlansList();
+    }
+
+    // ── Export / Import ──────────────────────────────────────────
+    async function exportCSV() {
+      if (!STATE.phases.length) { toast('Generate a plan first'); return; }
+      const res = await fetch('/api/export/csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bidName: STATE.bidName, phases: STATE.phases }),
+      });
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url;
+      a.download = (STATE.bidName || 'bid_plan').replace(/\s+/g, '_') + '_plan.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('CSV exported');
+    }
+
+    async function exportJSON() {
+      if (!STATE.phases.length) { toast('Generate a plan first'); return; }
+      const res = await fetch('/api/export/json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(STATE),
+      });
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url;
+      a.download = (STATE.bidName || 'bid_plan').replace(/\s+/g, '_') + '_plan.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('JSON exported');
+    }
+
+    async function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/import', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (data.error) { toast('Import failed: ' + data.error); }
+      else {
+        STATE = data;
+        calendarDisplayMonth = null;
+        render();
+        toast('Plan imported: ' + (STATE.bidName || 'Unnamed'));
+      }
+      // Reset file input so the same file can be imported again
+      event.target.value = '';
+    }
+
+    // ── Print / PDF ──────────────────────────────────────────────
+    function printPlan() {
+      if (!STATE.phases.length) { toast('Generate a plan first'); return; }
+      localStorage.setItem('__bid_print_plan__', JSON.stringify(STATE));
+      window.open('/print', '_blank');
+    }
+
+    // ── Phase editing ────────────────────────────────────────────
+    function updatePhaseDate(idx, field, value) {
+      STATE.phases[idx][field] = value;
+      const ph = STATE.phases[idx];
+      ph.duration = diffDays(ph.startDate, ph.endDate);
+      ph.label = ph.duration === 0 ? 'Milestone' : ph.duration + ' day' + (ph.duration !== 1 ? 's' : '');
+      render();
+    }
+
+    function updatePhaseOwner(idx, value) { STATE.phases[idx].owner = value; }
+
+    function toggleExclude(idx) { STATE.phases[idx].excluded = !STATE.phases[idx].excluded; render(); }
+
+    function addPhase() {
+      const lastPhase = STATE.phases[STATE.phases.length - 1];
+      const startDate = lastPhase ? lastPhase.endDate : STATE.rfpRelease;
+      STATE.phases.push({
+        id: STATE.phases.length, name: 'New Phase', category: 'GOVERNANCE',
+        startDate: startDate, endDate: startDate, duration: 0, label: 'Milestone',
+        owner: '', excluded: false,
+      });
+      render();
+      setTimeout(() => {
+        const rows = document.querySelectorAll('#phaseTableBody tr');
+        const lastRow = rows[rows.length - 1];
+        if (lastRow) {
+          const nameCell = lastRow.querySelector('.phase-name');
+          if (nameCell) {
+            nameCell.setAttribute('contenteditable', 'true');
+            nameCell.focus();
+            const range = document.createRange();
+            range.selectNodeContents(nameCell);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            nameCell.addEventListener('blur', () => {
+              STATE.phases[STATE.phases.length - 1].name = nameCell.textContent.trim() || 'New Phase';
+              nameCell.removeAttribute('contenteditable');
+              renderActiveView();
+            }, { once: true });
+          }
+        }
+      }, 50);
+    }
+
+    /* ================================================================
+       BOOT
+       ================================================================ */
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadTemplates();
+      lucide.createIcons();
+      resetToSample();
+    });
+  </script>
+</body>
+</html>
+

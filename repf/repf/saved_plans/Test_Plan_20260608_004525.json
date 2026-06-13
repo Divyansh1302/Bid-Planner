@@ -1,0 +1,22 @@
+{
+  "bidName": "Test Plan",
+  "rfpRelease": "2026-06-10",
+  "submission": "2026-08-10",
+  "reviewCycle": "commercial",
+  "phases": [
+    {
+      "id": 0,
+      "name": "Test",
+      "category": "GOVERNANCE",
+      "startDate": "2026-06-10",
+      "endDate": "2026-06-15",
+      "duration": 5,
+      "label": "5 days",
+      "owner": "Me",
+      "excluded": false
+    }
+  ],
+  "totalWindow": 61,
+  "daysToDeadline": 55,
+  "savedAt": "2026-06-08T00:45:25.335965"
+}
