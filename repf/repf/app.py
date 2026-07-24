@@ -18,6 +18,7 @@ import os
 import math
 import re
 from datetime import date, datetime, timedelta
+from typing import Optional
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify, Response, send_file
 
@@ -153,6 +154,20 @@ TEMPLATES: dict[str, dict] = {
 #  CALCULATION ENGINE
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _count_working_days(start: date, end: date) -> int:
+    """Count the number of working days (Mon-Fri) between two dates, inclusive of start, exclusive of end.
+    For a zero-duration milestone, returns 0."""
+    if start >= end:
+        return 0
+    count = 0
+    current = start
+    while current < end:
+        if current.weekday() < 5:  # Mon=0 .. Fri=4
+            count += 1
+        current += timedelta(days=1)
+    return count
+
+
 def _distribute_phases(
     start_date: date,
     end_date: date,
@@ -170,18 +185,20 @@ def _distribute_phases(
         e_offset = round(ph["pctEnd"]   * total_days)
         s = start_date + timedelta(days=s_offset)
         e = start_date + timedelta(days=e_offset)
-        duration = (e - s).days
+        calendar_days = (e - s).days
+        working_days = _count_working_days(s, e)
         phases.append({
-            "id":        idx,
-            "name":      ph["name"],
-            "category":  ph["category"],
-            "startDate": s.isoformat(),
-            "endDate":   e.isoformat(),
-            "duration":  duration,
-            "label":     "Milestone" if duration == 0 else f"{duration} day{'s' if duration != 1 else ''}",
-            "owner":     ph["owner"],
-            "excluded":  False,
-            "status":    "not_started",
+            "id":           idx,
+            "name":         ph["name"],
+            "category":     ph["category"],
+            "startDate":    s.isoformat(),
+            "endDate":      e.isoformat(),
+            "duration":     calendar_days,
+            "workingDays":  working_days,
+            "label":        "Milestone" if calendar_days == 0 else f"{working_days} working day{'s' if working_days != 1 else ''}",
+            "owner":        ph["owner"],
+            "excluded":     False,
+            "status":       "not_started",
         })
 
     return phases
@@ -198,15 +215,17 @@ def _build_response(
     """Build the full plan response dict."""
     rfp = date.fromisoformat(rfp_release)
     sub = date.fromisoformat(submission)
+    total_working = _count_working_days(rfp, sub)
     return {
-        "bidName":        bid_name,
-        "rfpRelease":     rfp_release,
-        "submission":     submission,
-        "qaDeadline":     qa_deadline,
-        "reviewCycle":    review_cycle,
-        "phases":         phases,
-        "totalWindow":    (sub - rfp).days,
-        "daysToDeadline": (sub - date.today()).days,
+        "bidName":           bid_name,
+        "rfpRelease":        rfp_release,
+        "submission":        submission,
+        "qaDeadline":        qa_deadline,
+        "reviewCycle":       review_cycle,
+        "phases":            phases,
+        "totalWindow":       total_working,
+        "totalCalendarDays": (sub - rfp).days,
+        "daysToDeadline":    _count_working_days(date.today(), sub),
     }
 
 
@@ -354,8 +373,9 @@ def api_load_plan(filename: str):
     try:
         rfp = date.fromisoformat(data["rfpRelease"])
         sub = date.fromisoformat(data["submission"])
-        data["totalWindow"]    = (sub - rfp).days
-        data["daysToDeadline"] = (sub - date.today()).days
+        data["totalWindow"]       = _count_working_days(rfp, sub)
+        data["totalCalendarDays"] = (sub - rfp).days
+        data["daysToDeadline"]    = _count_working_days(date.today(), sub)
     except (KeyError, ValueError):
         pass
 
@@ -378,34 +398,79 @@ def api_delete_plan(filename: str):
 
 @app.route("/api/export/csv", methods=["POST"])
 def api_export_csv():
-    """Export the current plan as a downloadable CSV."""
+    """Export the current plan as a downloadable CSV.
+
+    Format matches the Bid Plan template:
+      - Column A: Deliverables (category group header, only on first row of each group)
+      - Column B: S. No (sequential across all activities)
+      - Column C: Activity (phase name)
+      - Column D: Responsibility (owner)
+      - Column E: Deadline (end date)
+
+    Phases are grouped by category and ordered within each group.
+    Total duration is expressed in working days.
+    """
     body   = request.get_json(force=True)
     phases = body.get("phases", [])
     bid    = body.get("bidName", "Bid Plan")
 
+    # Filter out excluded phases
+    active_phases = [ph for ph in phases if not ph.get("excluded")]
+
+    # Define the canonical category ordering
+    CATEGORY_ORDER = [
+        "STRATEGY & PLANNING",
+        "GOVERNANCE",
+        "SOLUTION & PRICING",
+        "CONTENT DEVELOPMENT",
+        "REVIEWS",
+    ]
+
+    # Group phases by category, preserving order within each group
+    from collections import OrderedDict
+    grouped: dict[str, list] = OrderedDict()
+    for cat in CATEGORY_ORDER:
+        grouped[cat] = []
+    for ph in active_phases:
+        cat = ph.get("category", "OTHER")
+        if cat not in grouped:
+            grouped[cat] = []
+        grouped[cat].append(ph)
+
     buf = io.StringIO()
     writer = csv.writer(buf)
-    writer.writerow(["#", "Phase", "Category", "Start Date", "End Date", "Duration", "Owner", "Status"])
-    for i, ph in enumerate(phases):
-        if ph.get("excluded"):
+
+    # Header row
+    writer.writerow(["Deliverables", "S. No", "Activity", "Responsibility", "Deadline"])
+
+    serial = 1
+    for category, cat_phases in grouped.items():
+        if not cat_phases:
             continue
-        writer.writerow([
-            i + 1,
-            ph["name"],
-            ph["category"],
-            ph["startDate"],
-            ph["endDate"],
-            ph["label"],
-            ph["owner"],
-            ph.get("status", "not_started").replace("_", " ").title(),
-        ])
+        for i, ph in enumerate(cat_phases):
+            # Show deliverable (category) label only on first row of each group
+            deliverable_label = category if i == 0 else ""
+            deadline = ph.get("endDate", "")
+            writer.writerow([
+                deliverable_label,
+                serial,
+                ph["name"],
+                ph.get("owner", ""),
+                deadline,
+            ])
+            serial += 1
+
+    # Summary row with working days
+    total_working_days = body.get("totalWindow", 0)
+    writer.writerow([])
+    writer.writerow(["Total Duration (Working Days)", total_working_days, "", "", ""])
 
     buf.seek(0)
     safe = _safe_filename(bid)
     return Response(
         buf.getvalue(),
         mimetype="text/csv",
-        headers={"Content-Disposition": f'attachment; filename="{safe}_plan.csv"'},
+        headers={"Content-Disposition": f'attachment; filename="{safe}_bid_plan.csv"'},
     )
 
 
@@ -448,8 +513,9 @@ def api_import_json():
     try:
         rfp = date.fromisoformat(data["rfpRelease"])
         sub = date.fromisoformat(data["submission"])
-        data["totalWindow"]    = (sub - rfp).days
-        data["daysToDeadline"] = (sub - date.today()).days
+        data["totalWindow"]       = _count_working_days(rfp, sub)
+        data["totalCalendarDays"] = (sub - rfp).days
+        data["daysToDeadline"]    = _count_working_days(date.today(), sub)
     except (KeyError, ValueError):
         pass
 

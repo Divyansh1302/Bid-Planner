@@ -79,7 +79,7 @@
       document.getElementById('printMeta').innerHTML = `
         <div class="meta-item"><label>RFP Release</label><span>${fmt(plan.rfpRelease)}</span></div>
         <div class="meta-item"><label>Submission</label><span>${fmt(plan.submission)}</span></div>
-        <div class="meta-item"><label>Total Window</label><span>${plan.totalWindow || '—'} days</span></div>
+        <div class="meta-item"><label>Total Working Days</label><span>${plan.totalWindow || '—'} working days</span></div>
         <div class="meta-item"><label>Review Cycle</label><span>${(plan.reviewCycle||'').replace('_',' ')}</span></div>
       `;
       const phases = (plan.phases || []).filter(p => !p.excluded);

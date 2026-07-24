@@ -596,8 +596,8 @@
       <div class="metric-card"><div class="metric-label">Bid Name</div><div class="metric-value" id="metricName">&mdash;</div></div>
       <div class="metric-card"><div class="metric-label">RFP Release</div><div class="metric-value" id="metricRelease">&mdash;</div></div>
       <div class="metric-card"><div class="metric-label">Submission</div><div class="metric-value" id="metricSubmission">&mdash;</div></div>
-      <div class="metric-card"><div class="metric-label">Total Window</div><div class="metric-value highlight" id="metricWindow">&mdash;</div></div>
-      <div class="metric-card"><div class="metric-label">Days to Deadline</div><div class="metric-value urgent" id="metricDeadline">&mdash;</div></div>
+      <div class="metric-card"><div class="metric-label">Total Working Days</div><div class="metric-value highlight" id="metricWindow">&mdash;</div></div>
+      <div class="metric-card"><div class="metric-label">Working Days to Deadline</div><div class="metric-value urgent" id="metricDeadline">&mdash;</div></div>
     </div>
 
     <!-- ─── Phase Table ─────────────────────────────────────────── -->
@@ -762,9 +762,9 @@
       document.getElementById('metricName').textContent       = STATE.bidName || '\u2014';
       document.getElementById('metricRelease').textContent     = fmt(STATE.rfpRelease);
       document.getElementById('metricSubmission').textContent  = fmt(STATE.submission);
-      document.getElementById('metricWindow').textContent      = STATE.totalWindow ? STATE.totalWindow + ' days' : '\u2014';
+      document.getElementById('metricWindow').textContent      = STATE.totalWindow ? STATE.totalWindow + ' working days' : '\u2014';
       const ddl = STATE.daysToDeadline;
-      document.getElementById('metricDeadline').textContent    = ddl != null && STATE.submission ? ddl + ' days' : '\u2014';
+      document.getElementById('metricDeadline').textContent    = ddl != null && STATE.submission ? ddl + ' working days' : '\u2014';
 
       // Form sync
       document.getElementById('bidName').value     = STATE.bidName;
@@ -1284,13 +1284,13 @@
       const res = await fetch('/api/export/csv', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bidName: STATE.bidName, phases: STATE.phases }),
+        body: JSON.stringify(STATE),
       });
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
       a.href = url;
-      a.download = (STATE.bidName || 'bid_plan').replace(/\s+/g, '_') + '_plan.csv';
+      a.download = (STATE.bidName || 'bid_plan').replace(/\s+/g, '_') + '_bid_plan.csv';
       a.click();
       URL.revokeObjectURL(url);
       toast('CSV exported');
@@ -1346,7 +1346,17 @@
       STATE.phases[idx][field] = value;
       const ph = STATE.phases[idx];
       ph.duration = diffDays(ph.startDate, ph.endDate);
-      ph.label = ph.duration === 0 ? 'Milestone' : ph.duration + ' day' + (ph.duration !== 1 ? 's' : '');
+      // Calculate working days (Mon-Fri)
+      let wd = 0;
+      if (ph.duration > 0) {
+        const s = new Date(ph.startDate + 'T00:00:00');
+        const e = new Date(ph.endDate + 'T00:00:00');
+        for (let d = new Date(s); d < e; d.setDate(d.getDate() + 1)) {
+          if (d.getDay() !== 0 && d.getDay() !== 6) wd++;
+        }
+      }
+      ph.workingDays = wd;
+      ph.label = ph.duration === 0 ? 'Milestone' : wd + ' working day' + (wd !== 1 ? 's' : '');
       render();
     }
 
