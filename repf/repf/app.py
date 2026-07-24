@@ -34,7 +34,58 @@ PLANS_DIR.mkdir(exist_ok=True)
 # ══════════════════════════════════════════════════════════════════════════════
 
 TEMPLATES: dict[str, dict] = {
-    "full": {
+    "Default": {
+        "label": "Default",
+        "description": "Tech Mahindra Default Template",
+        "phases": [
+            	{"name": "Receive Docs from customer (Package)", 				"category": "Pre Bid Activities", 	"pctStart": 0.00, "pctEnd": 0.02, "owner": "Client Partner"},
+		{"name": "Create CRM ID", 							                    "category": "Pre Bid Activities", 	"pctStart": 0.02, "pctEnd": 0.05, "owner": "Client Partner"},
+		{"name": "Deal Brief Creation", 						                "category": "Pre Bid Activities", 	"pctStart": 0.05, "pctEnd": 0.07, "owner": "Client Partner & Bid Manager"},
+		{"name": "Bid Qualification call", 						                "category": "Pre Bid Activities", 	"pctStart": 0.07, "pctEnd": 0.10, "owner": "Bid Manager"},
+		{"name": "Create SharePoint and Provide access", 				        "category": "Pre Bid Activities", 	"pctStart": 0.10, "pctEnd": 0.12, "owner": "Bid Manager"},
+		{"name": "Identification of Service Lines and onboarding", 			    "category": "Pre Bid Activities", 	"pctStart": 0.12, "pctEnd": 0.15, "owner": "Bid Manager"},
+		{"name": "Kick off Call with SPOCs", 						            "category": "Pre Bid Activities", 	"pctStart": 0.15, "pctEnd": 0.17, "owner": "Bid Manager"},
+		{"name": "Produce Queries to be sent to Customer", 				        "category": "Pre Bid Activities", 	"pctStart": 0.17, "pctEnd": 0.20, "owner": "Bid Manager"},
+		{"name": "Review of Clarification questions and finalisation", 			"category": "Pre Bid Activities", 	"pctStart": 0.20, "pctEnd": 0.22, "owner": "Solution Architect"},
+		{"name": "Receive Clarification for submitted queries", 			    "category": "Pre Bid Activities", 	"pctStart": 0.22, "pctEnd": 0.24, "owner": "Client Partner"},
+		{"name": "Strawman for deck", 							                "category": "Response Deck", 		"pctStart": 0.24, "pctEnd": 0.27, "owner": "Bid Manager"},
+		{"name": "Storyline for Ppt", 							                "category": "Response Deck", 		"pctStart": 0.27, "pctEnd": 0.29, "owner": "Bid Manager & Solution Architect"},
+		{"name": "Win Themes Workshop", 						                "category": "Response Deck", 		"pctStart": 0.29, "pctEnd": 0.32, "owner": "Bid Manager & Solution Architect"},
+		{"name": "Case Studies", 							                    "category": "Response Deck", 		"pctStart": 0.32, "pctEnd": 0.34, "owner": "Growth Office & Client Partner"},
+		{"name": "Allocation of Slides", 						                "category": "Response Deck", 		"pctStart": 0.34, "pctEnd": 0.37, "owner": "Solution Architect"},
+		{"name": "1st Draft of Slides", 						                "category": "Response Deck", 		"pctStart": 0.37, "pctEnd": 0.39, "owner": "Solution Team"},
+		{"name": "Review of Slides", 							                "category": "Response Deck", 		"pctStart": 0.39, "pctEnd": 0.41, "owner": "Solution Architect"},
+		{"name": "Formatting of Slides", 						                "category": "Response Deck", 		"pctStart": 0.41, "pctEnd": 0.44, "owner": "Bid Manager"},
+		{"name": "Finalisation of Deck", 						                "category": "Response Deck", 		"pctStart": 0.44, "pctEnd": 0.46, "owner": "Solution Architect"},
+		{"name": "Allocation of questions", 						            "category": "Capability Questionnaire", "pctStart": 0.46, "pctEnd": 0.49, "owner": "Solution Architect"},
+		{"name": "Receipt of first draft of responses", 				        "category": "Capability Questionnaire", "pctStart": 0.49, "pctEnd": 0.51, "owner": "Solution Team"},
+		{"name": "Review of first draft of responses", 					        "category": "Capability Questionnaire", "pctStart": 0.51, "pctEnd": 0.54, "owner": "Solution Architect"},
+		{"name": "Merging of responses", 						                "category": "Capability Questionnaire", "pctStart": 0.54, "pctEnd": 0.56, "owner": "Solution Architect"},
+		{"name": "Finalisation of Responses", 						            "category": "Capability Questionnaire", "pctStart": 0.56, "pctEnd": 0.59, "owner": "Solution Architect"},
+		{"name": "RLS Template", 							                    "category": "Commercials", 		"pctStart": 0.59, "pctEnd": 0.61, "owner": "Finance SPOC"},
+		{"name": "Rates to be input after SL Delivery sign off", 			    "category": "Commercials", 		"pctStart": 0.61, "pctEnd": 0.63, "owner": "SL Contributor"},
+		{"name": "Identification of Customers to be benchmarked against", 		"category": "Commercials", 		"pctStart": 0.63, "pctEnd": 0.66, "owner": "Finance SPOC"},
+		{"name": "Rates benchmarked and finalised", 					        "category": "Commercials", 		"pctStart": 0.66, "pctEnd": 0.68, "owner": "Delivery"},
+		{"name": "Run P&L", 								                    "category": "Commercials", 		"pctStart": 0.68, "pctEnd": 0.71, "owner": "Finance SPOC"},
+		{"name": "Pricing Model - 1st Draft", 						            "category": "Commercials", 		"pctStart": 0.71, "pctEnd": 0.73, "owner": "Finance SPOC"},
+		{"name": "Pricing Model - Finalisation", 					            "category": "Commercials", 		"pctStart": 0.73, "pctEnd": 0.76, "owner": "Client Partner"},
+		{"name": "Raise CLM Request", 							                "category": "Legal", 			"pctStart": 0.76, "pctEnd": 0.78, "owner": ""},
+		{"name": "1st Draft", 								                    "category": "Legal", 			"pctStart": 0.78, "pctEnd": 0.80, "owner": "Bid Manager"},
+		{"name": "Finalisation of response to Clauses", 				        "category": "Legal", 			"pctStart": 0.80, "pctEnd": 0.83, "owner": "Bid Manager"},
+		{"name": "Deal Brief Updation", 						                "category": "Reviews", 			"pctStart": 0.83, "pctEnd": 0.85, "owner": "Bid Manager, Client Partner and Finance SPOC"},
+		{"name": "Review with IBG and IBU Heads along with SL Heads", 			"category": "Reviews", 			"pctStart": 0.85, "pctEnd": 0.88, "owner": "Bid Manager"},
+		{"name": "CMC review and eGRC review", 						            "category": "Reviews", 			"pctStart": 0.88, "pctEnd": 0.90, "owner": "Bid Manager"},
+		{"name": "Incorporate Review comments : into Proposal", 			    "category": "Reviews", 			"pctStart": 0.90, "pctEnd": 0.93, "owner": "Bid Manager"},
+		{"name": "CXO Review", 								                    "category": "Reviews", 			"pctStart": 0.93, "pctEnd": 0.95, "owner": "Bid Manager"},
+		{"name": "Approvals if required", 						                "category": "Reviews", 			"pctStart": 0.95, "pctEnd": 0.98, "owner": "Bid Manager"},
+		{"name": "Final Proposal Response submission", 					        "category": "Reviews", 			"pctStart": 0.98, "pctEnd": 1.00, "owner": "Client Partner"},
+	    
+
+
+        ],
+    },
+
+     "full": {
         "label": "Full Cycle -- Pink / Red / Gold",
         "description": "Standard 3-gate review process for large proposals.",
         "phases": [
