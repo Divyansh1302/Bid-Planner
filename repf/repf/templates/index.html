@@ -205,7 +205,7 @@
 
     /* Category Badges */
     .category-badge { display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #fff; white-space: nowrap; }
-    .cat-strategy    { background: var(--cat-strategy); }
+    .cat-strategy    { background: var(--cat-Pre Bid Activities); }
     .cat-solution    { background: var(--cat-solution); }
     .cat-content     { background: var(--cat-content); }
     .cat-reviews     { background: var(--cat-reviews); }
@@ -715,15 +715,16 @@
     function todayISO() { return toISO(new Date()); }
 
     function catClass(category) {
-      if (category.includes('STRATEGY'))   return 'cat-strategy';
-      if (category.includes('SOLUTION'))   return 'cat-solution';
-      if (category.includes('CONTENT'))    return 'cat-content';
-      if (category.includes('REVIEW'))     return 'cat-reviews';
-      if (category.includes('GOVERNANCE')) return 'cat-governance';
+      if (category.includes('Pre Bid Activities'))   return 'cat-Pre Bid Activities';
+      if (category.includes('Response Deck'))   return 'Response Deck';
+      if (category.includes('Capability Questionnaire'))    return 'Capability Questionnaire';
+      if (category.includes('Commercials'))     return 'cat-Commercials';
+      if (category.includes('Legal')) return 'cat-Legal';
+      if (category.includes('Reviews')) return 'cat-Reviews';
       return 'cat-strategy';
     }
     function catColor(category) {
-      const map = { 'STRATEGY': '#1e2a4a', 'SOLUTION': '#2d6b4a', 'CONTENT': '#6b4a2d', 'REVIEW': '#8b6914', 'GOVERNANCE': '#5a3d6b' };
+      const map = { 'Pre Bid Activities': '#1e2a4a', 'Response Deck': '#2d6b4a', 'Capability Questionnaire': '#6b4a2d', 'Commercials': '#8b6914', 'Legal': '#5a3d6b', 'Reviews': '#00ff00' };
       for (const [k, v] of Object.entries(map)) { if (category.includes(k)) return v; }
       return '#1e2a4a';
     }
