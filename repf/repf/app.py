@@ -231,7 +231,7 @@ def _distribute_phases(
     """Proportionally distribute phase dates across the total window."""
     total_days = max(0, (end_date - start_date).days)
 
-    template = TEMPLATES.get(template_key, TEMPLATES["full"])
+    template = TEMPLATES.get(template_key, TEMPLATES["Default"])
     phases_tmpl = template["phases"]
     phases = []
 
@@ -291,7 +291,7 @@ SAMPLE_DATA = {
     "rfpRelease":    "2026-06-04",
     "submission":    "2026-07-04",
     "qaDeadline":    "",
-    "reviewCycle":   "full",
+    "reviewCycle":   "Default",
 }
 
 
@@ -335,7 +335,7 @@ def api_generate():
     body  = request.get_json(force=True)
     rfp   = date.fromisoformat(body["rfpRelease"])
     sub   = date.fromisoformat(body["submission"])
-    cycle = body.get("reviewCycle", "full")
+    cycle = body.get("reviewCycle", "Default")
     phases = _distribute_phases(rfp, sub, cycle)
     return jsonify(_build_response(
         body.get("bidName", ""), body["rfpRelease"], body["submission"],
