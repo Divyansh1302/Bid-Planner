@@ -472,20 +472,9 @@ def api_export_csv():
     # Filter out excluded phases
     active_phases = [ph for ph in phases if not ph.get("excluded")]
 
-    # Define the canonical category ordering
-    CATEGORY_ORDER = [
-        "STRATEGY & PLANNING",
-        "GOVERNANCE",
-        "SOLUTION & PRICING",
-        "CONTENT DEVELOPMENT",
-        "REVIEWS",
-    ]
-
-    # Group phases by category, preserving order within each group
+    # Discover categories in order of first appearance, then group phases
     from collections import OrderedDict
     grouped: dict[str, list] = OrderedDict()
-    for cat in CATEGORY_ORDER:
-        grouped[cat] = []
     for ph in active_phases:
         cat = ph.get("category", "OTHER")
         if cat not in grouped:
